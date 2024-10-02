@@ -1,0 +1,98 @@
+[
+    {
+        "username": "ArjunNS375",
+        "password": "Bruno123",
+        "diseases": {
+            "diabetes": false,
+            "hypertension": false,
+            "asthma": false,
+            "arthritis": false,
+            "depression": false,
+            "cancer": false,
+            "heart_disease": false,
+            "stroke": false,
+            "obesity": false,
+            "migraine": false
+        }
+    },
+    {
+        "username": "AshwinaKN2005",
+        "password": "Bruno1234",
+        "diseases": {
+            "diabetes": false,
+            "hypertension": false,
+            "asthma": false,
+            "arthritis": false,
+            "depression": false,
+            "cancer": false,
+            "heart_disease": false,
+            "stroke": false,
+            "obesity": false,
+            "migraine": false
+        }
+    },
+    {
+        "username": "Confusionxxx",
+        "password": "Bruno12345",
+        "diseases": {
+            "diabetes": false,
+            "hypertension": false,
+            "asthma": false,
+            "arthritis": false,
+            "depression": false,
+            "cancer": false,
+            "heart_disease": false,
+            "stroke": false,
+            "obesity": false,
+            "migraine": false
+        }
+    },
+    {
+        "username": "SriHarishb",
+        "password": "Bruno123456",
+        "diseases": {
+            "diabetes": false,
+            "hypertension": false,
+            "asthma": false,
+            "arthritis": false,
+            "depression": false,
+            "cancer": false,
+            "heart_disease": false,
+            "stroke": false,
+            "obesity": false,
+            "migraine": false
+        }
+    },
+    {
+        "username": "a",
+        "password": "a",
+        "diseases": {
+            "diabetes": false,
+            "hypertension": false,
+            "asthma": false,
+            "arthritis": false,
+            "depression": false,
+            "cancer": false,
+            "heart_disease": false,
+            "stroke": false,
+            "obesity": false,
+            "migraine": false
+        }
+    },
+    {
+        "username": "AD-a",
+        "password": "ada",
+        "diseases": {
+            "diabetes": false,
+            "hypertension": false,
+            "asthma": false,
+            "arthritis": false,
+            "depression": false,
+            "cancer": false,
+            "heart_disease": false,
+            "stroke": false,
+            "obesity": false,
+            "migraine": false
+        }
+    }
+]
