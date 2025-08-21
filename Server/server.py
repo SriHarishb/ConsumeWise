@@ -1,17 +1,20 @@
 from flask import Flask, jsonify, request
 from pymongo import MongoClient
 import google.generativeai as genai
+from dotenv import load_dotenv
+import os
 
-
+load_dotenv()
 genai.configure(api_key='')
-model = genai.GenerativeModel('gemini-1.5-flash')
+mongo_uri = os.getenv("MONGODB_URI")
+model = genai.GenerativeModel('gemini-2.5-flash')
 
 
 app = Flask(__name__)
 
 # Configure MongoDB connection
-client = MongoClient("mongodb://admin1:password@localhost:27017/consumewise?authSource=admin")  # Connect to the local MongoDB server
-db = client['consumewise']  # Replace with your database name
+client = MongoClient(mongo_uri)  # Connect to the local MongoDB server
+db = client['NutriScope']  # Replace with your database name
 collection = db['products']  # Replace with your collection name
 
 @app.route('/products', methods=['GET'])
@@ -21,6 +24,7 @@ def get_products():
 
 @app.route('/products', methods=['POST'])
 def add_product():
+    print("im here")
     product = request.json  # Get the product data from the request
     barcode = product.get('barcode_number')  # Extract barcode from product data
     
@@ -64,6 +68,7 @@ def get_product_by_barcode():
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
 
 
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0',debug=True)
-

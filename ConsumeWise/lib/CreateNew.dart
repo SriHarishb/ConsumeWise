@@ -5,6 +5,8 @@ import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 
 class CreateNew extends StatefulWidget {
+  const CreateNew({super.key});
+
   @override
   _CreateNewState createState() => _CreateNewState();
 }

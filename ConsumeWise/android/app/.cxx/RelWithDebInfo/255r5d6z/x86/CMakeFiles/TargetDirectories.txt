@@ -1,0 +1,2 @@
+C:/Users/admin/ConsumeWise/ConsumeWise/android/app/.cxx/RelWithDebInfo/255r5d6z/x86/CMakeFiles/edit_cache.dir
+C:/Users/admin/ConsumeWise/ConsumeWise/android/app/.cxx/RelWithDebInfo/255r5d6z/x86/CMakeFiles/rebuild_cache.dir

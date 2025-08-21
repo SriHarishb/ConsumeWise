@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
         '/CreateNew':(context)=> CreateNew(),
          '/History':(context)=>const History(responses: [],),
          '/AdminLogin':(context)=>const Adminlogin(),
-         '/LoadingScreen':(context)=>LoadingScreen(),
+         '/LoadingScreen':(context)=>const LoadingScreen(),
       },
       debugShowCheckedModeBanner: false,
     );
