@@ -3,3 +3,4 @@ flask-cors
 pymongo
 ollama
 flask-swagger-ui
+dotenv
