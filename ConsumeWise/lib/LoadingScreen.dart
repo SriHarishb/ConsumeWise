@@ -24,7 +24,7 @@ void startTimer() {
   Timer(const Duration(seconds: 5), () {
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (context) => LoginScreen()), 
+      MaterialPageRoute(builder: (context) => const LoginScreen()), 
       (Route<dynamic> route) => false, 
     );
   });
