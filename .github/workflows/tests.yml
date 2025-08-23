@@ -10,6 +10,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: .   # root of the repo
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -17,7 +21,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11"   # match your local version
+          python-version: "3.11"
 
       - name: Install dependencies
         run: |
@@ -26,6 +30,5 @@ jobs:
           pip install pytest pytest-cov
 
       - name: Run tests
-        working-directory: backend
         run: |
           pytest --maxfail=1 --disable-warnings -q --cov=app --cov-report=term-missing
