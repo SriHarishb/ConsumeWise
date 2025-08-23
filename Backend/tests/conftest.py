@@ -1,20 +1,34 @@
 import pytest
+import tempfile
+import os
 from app import init_app, init_db
 from config import Config
 
-class TestConfig(Config):
-    TESTING = True
-    DB_PATH = ":memory:"  # in-memory DB for tests
-    SCHEMA_PATH = "Backend/schema.sql"
-    INIT_DB_ON_STARTUP = False  # we’ll run manually in tests
 
 @pytest.fixture
 def client():
-    app = init_app(TestConfig)
+    # Create a temporary SQLite file
+    with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        db_path = tmp.name
 
-    with app.app_context():
-        # Fresh schema for every test session
-        init_db(app)
+    # Define a fresh config for this test run
+    class _TestConfig(Config):
+        TESTING = True
+        INIT_DB_ON_STARTUP = False
+        DB_PATH = db_path
+        SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "..", "schema.sql")
 
-        with app.test_client() as client:
-            yield client
+    app = init_app(_TestConfig)
+
+    # Push app context
+    ctx = app.app_context()
+    ctx.push()
+
+    # Init schema
+    init_db(app)
+
+    yield app.test_client()
+
+    # Teardown
+    ctx.pop()
+    os.unlink(db_path)

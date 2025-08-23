@@ -1,110 +1,18 @@
 openapi: 3.0.3
 info:
-  title: Consumewise Product API
-  description: API for extracting product details and generating personalized health suggestions using Ollama and MongoDB.
+  title: NutriChoice
   version: 1.0.0
+  description: >
+    API for extracting product details from images, managing products, 
+    and generating health suggestions using Ollama.
 
 servers:
   - url: http://localhost:5000
-    description: Local development server
 
 paths:
-  /products:
-    get:
-      summary: Get all products
-      description: Retrieve all stored products from the database.
-      responses:
-        "200":
-          description: List of products
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Product"
-    post:
-      summary: Add a new product
-      description: Insert a new product into the database if the barcode is not already present.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Product"
-      responses:
-        "201":
-          description: Product added successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        "400":
-          description: Product already exists or invalid input
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
-  /gethealthsuggestion:
-    post:
-      summary: Get health suggestions for a product
-      description: |
-        Generate health suggestions based on either product details from the database (via barcode) 
-        or an uploaded product image.  
-        Considers nutritional information, ingredients, and user health concerns.
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                image:
-                  type: string
-                  format: binary
-                  description: Optional product image file
-                data:
-                  type: object
-                  properties:
-                    barcode_number:
-                      type: string
-                      example: "8901234567890"
-                    diseases:
-                      type: array
-                      items:
-                        type: string
-                      example: ["diabetes", "hypertension"]
-      responses:
-        "200":
-          description: Health advice generated successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  advice:
-                    type: string
-        "400":
-          description: Product not found and no image provided or invalid request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "500":
-          description: Server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
   /extract_product_details:
     post:
-      summary: Extract product details from images
-      description: |
-        Upload two product images and extract structured product information using Ollama.
+      summary: Extract product details from two images
       requestBody:
         required: true
         content:
@@ -125,68 +33,132 @@ paths:
                   description: Second product image
       responses:
         "200":
-          description: Product details extracted successfully
+          description: Product details successfully extracted
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ProductWithHealth"
+                $ref: "#/components/schemas/Product"
         "400":
-          description: Missing images
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+          description: Missing required images
         "500":
           description: Unexpected error
+
+  /gethealthsuggestion:
+    post:
+      summary: Get health suggestions for a product
+      description: >
+        Accepts either JSON with `barcode_number` and `diseases` OR
+        multipart form-data with an image file and optional diseases.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - barcode_number
+              properties:
+                barcode_number:
+                  type: string
+                  example: "12345"
+                diseases:
+                  type: array
+                  items:
+                    type: string
+                  example: ["diabetes", "hypertension"]
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: Product image file
+                diseases:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Streamed health advice (SSE)
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                example: |
+                  data: Sample advice...
+                  event: end
+                  data: [DONE]
+        "400":
+          description: Invalid request
+        "404":
+          description: Product not found
+        "500":
+          description: Unexpected error
+
+  /products:
+    get:
+      summary: Get all products
+      responses:
+        "200":
+          description: List of products
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+    post:
+      summary: Add a new product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Product"
+      responses:
+        "201":
+          description: Product created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Product added successfully!
+        "400":
+          description: Invalid product data or duplicate barcode
 
 components:
   schemas:
     Product:
       type: object
       properties:
-        item_name:
-          type: string
-          example: "Oatmeal Cookies"
-        brand:
-          type: string
-          example: "Healthy Bites"
         barcode_number:
           type: string
-          example: "8901234567890"
+          example: "12345"
+        item_name:
+          type: string
+          example: "Whole Wheat Bread"
+        brand:
+          type: string
+          example: "HealthyBakery"
         weight:
           type: string
-          example: "200g"
+          example: "500g"
         ingredients:
           type: array
           items:
             type: string
-          example: ["Oats", "Sugar", "Butter", "Raisins"]
+          example: ["wheat flour", "water", "salt"]
         nutritional_info:
           type: object
-          additionalProperties:
-            type: string
+          additionalProperties: true
           example:
-            calories: "120 kcal"
-            protein: "5g"
-            fat: "2g"
+            calories: "250"
+            protein: "10g"
         product_description:
           type: string
-          example: "Crispy and healthy oatmeal cookies with raisins."
-    ProductWithHealth:
-      allOf:
-        - $ref: "#/components/schemas/Product"
-        - type: object
-          properties:
-            health_suggestion:
-              type: string
-              example: "Good source of fiber but avoid if diabetic due to sugar content"
-    ErrorResponse:
-      type: object
-      properties:
-        error:
-          type: string
-          example: "Product with this barcode already exists!"
+          example: "Soft whole wheat bread with no added sugar"

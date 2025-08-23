@@ -8,3 +8,4 @@ class Config:
     DB_PATH = os.getenv("SQLITE_DB", "instance/products.db")
     SWAGGER_URL = "/docs"
     API_URL = "/static/openapi.yaml"
+    SCHEMA_PATH = os.getenv("SCHEMA_PATH", "schema.sql")

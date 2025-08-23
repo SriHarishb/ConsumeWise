@@ -13,7 +13,7 @@ def test_extract_product_details(client, monkeypatch):
         "health_suggestion": "Healthy option"
     })
 
-    monkeypatch.setattr("app.services.ollama_service.run_ollama", lambda *a, **k: fake_response)
+    monkeypatch.setattr("app.routes.extract.run_ollama", lambda *a, **k: fake_response)
 
     img1 = io.BytesIO(b"fake image1 data")
     img2 = io.BytesIO(b"fake image2 data")

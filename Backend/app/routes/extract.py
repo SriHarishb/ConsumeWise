@@ -21,9 +21,7 @@ def extract_product_details():
             "Extract the complete product details and return them strictly as a JSON object with the following keys:\n"
             "item_name (string), brand (string), barcode_number (string), weight (string),\n"
             "ingredients (array of strings), nutritional_info (object with key-value pairs),\n"
-            "product_description (string), health_suggestion (string).\n"
-            "All fields except health_suggestion should be taken only from the images.\n"
-            "Generate health_suggestion considering the nutritional information and ingredients.\n"
+            "product_description (string)\n"
             "Do not include any extra text, only return a valid JSON."
         )
 
