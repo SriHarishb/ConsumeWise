@@ -1,8 +1,8 @@
 import os
 import base64
 import json
-from flask import Flask, jsonify, request
-from pymongo import MongoClient
+import sqlite3
+from flask import Flask, jsonify, request, g, Response, stream_with_context
 import ollama
 from werkzeug.exceptions import BadRequest, InternalServerError
 from dotenv import load_dotenv
@@ -12,42 +12,73 @@ import yaml
 load_dotenv()
 
 # App Config
-
 app = Flask(__name__)
 
-MONGO_URI = os.getenv("MONGO_URI")
-DB_NAME = os.getenv("DB_NAME")
 MODEL_NAME = os.getenv("OLLAMA_MODEL")
+DB_PATH = os.getenv("SQLITE_DB", "products.db")  # default db file
+
 # Path to your OpenAPI YAML file
 SWAGGER_URL = "/docs"  # Swagger UI will be available at http://localhost:5000/docs
 API_URL = "/static/openapi.yaml"  # Spec file will be served here
-
-client = MongoClient(MONGO_URI)
-db = client[DB_NAME]
-products_collection = db['products']
-
 
 # Register Swagger UI blueprint
 swaggerui_blueprint = get_swaggerui_blueprint(
     SWAGGER_URL,
     API_URL,
-    config={
-        "app_name": "Consumewise Product API"
-    }
+    config={"app_name": "Consumewise Product API"}
 )
 app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
+
+# SQLite Helpers
+def get_db():
+    if "db" not in g:
+        g.db = sqlite3.connect(DB_PATH)
+        g.db.row_factory = sqlite3.Row
+    return g.db
+
+@app.teardown_appcontext
+def close_db(exception):
+    db = g.pop("db", None)
+    if db is not None:
+        db.close()
+
+def init_db():
+    db = get_db()
+    db.execute(
+        """CREATE TABLE IF NOT EXISTS products (
+               barcode_number TEXT PRIMARY KEY,
+               item_name TEXT,
+               brand TEXT,
+               weight TEXT,
+               ingredients TEXT,
+               nutritional_info TEXT,
+               product_description TEXT
+           )"""
+    )
+    db.commit()
+
 # Utility Functions
-
-
 def encode_image_to_base64(image_file):
-    """Convert an uploaded image file to base64 string."""
+    """
+    Encode an image file to a base64 string.
+    Args:
+        image_file: The image file to encode.
+    Returns:
+        A base64 encoded string representation of the image file, or None if the file is not provided.
+    """
     if not image_file:
         return None
     return base64.b64encode(image_file.read()).decode("utf-8")
 
-
 def run_ollama(prompt: str, expect_json: bool = False):
-    """Send a prompt to Ollama model and return the response."""
+    """
+    Run the Ollama model with the given prompt.
+    Args:
+        prompt: The prompt to send to the model.
+        expect_json: Whether to expect a JSON response.
+    Returns:
+        The response from the model.
+    """
     try:
         response = ollama.chat(
             model=MODEL_NAME,
@@ -60,62 +91,97 @@ def run_ollama(prompt: str, expect_json: bool = False):
     except Exception as e:
         raise InternalServerError(f"Ollama error: {str(e)}")
 
-
 def error_response(message: str, code: int = 400):
-    """Return a consistent error response."""
+    """
+    Create a standardized error response.
+    Args:
+        message: The error message to include in the response.
+        code: The HTTP status code to return.
+    Returns:
+        A JSON response with the error message and status code.
+    """
     return jsonify({"error": message}), code
 
-
 # Routes
-
-
-
-# Serve the YAML file
 @app.route(API_URL)
 def openapi_spec():
+    """
+    Serve the OpenAPI specification file.
+    Args:
+        None
+    Returns:
+        A JSON response with the OpenAPI specification.
+    """
     with open("openapi.yaml", "r") as f:
         spec = yaml.safe_load(f)
     return jsonify(spec)
 
 @app.route('/products', methods=['GET'])
 def get_products():
-    """Retrieve all products in the database."""
-    products = list(products_collection.find({}, {'_id': 0}))
+    """
+    Get a list of all products.
+    Args:
+        None
+    Returns:
+        A JSON response with the list of products.
+    """
+    db = get_db()
+    cursor = db.execute("SELECT * FROM products")
+    products = [dict(row) for row in cursor.fetchall()]
     return jsonify(products), 200
-
 
 @app.route('/products', methods=['POST'])
 def add_product():
-    """Insert a new product if it does not exist already."""
+    """
+    Add a new product.
+    Args:
+        None
+    Returns:
+        A JSON response indicating the result of the operation.
+    """
     product = request.json
     if not product or "barcode_number" not in product:
         return error_response("Invalid product data: missing barcode_number")
 
-    barcode = product["barcode_number"]
-
-    if products_collection.find_one({"barcode_number": barcode}):
+    db = get_db()
+    cursor = db.execute("SELECT 1 FROM products WHERE barcode_number=?", (product["barcode_number"],))
+    if cursor.fetchone():
         return error_response("Product with this barcode already exists!", 400)
 
-    products_collection.insert_one(product)
+    db.execute(
+        "INSERT INTO products (barcode_number, item_name, brand, weight, ingredients, nutritional_info, product_description) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (
+            product.get("barcode_number"),
+            product.get("item_name"),
+            product.get("brand"),
+            product.get("weight"),
+            json.dumps(product.get("ingredients")),
+            json.dumps(product.get("nutritional_info")),
+            product.get("product_description")
+        )
+    )
+    db.commit()
     return jsonify({"message": "Product added successfully!"}), 201
 
 
 @app.route('/gethealthsuggestion', methods=['POST'])
 def get_health_suggestion():
     """
-    Generate health suggestions for a product.
-    Either uses product details from DB by barcode or scans provided image.
+    Stream health suggestions for a product using SSE.
+    Returns:
+        SSE response streaming the health suggestions.
     """
     try:
-        # Get image if provided
         image_file = request.files.get("image")
         encoded_image = encode_image_to_base64(image_file)
-
         data = request.get_json(force=True)
         barcode_number = data.get('barcode_number')
         diseases = data.get('diseases')
 
-        product = products_collection.find_one({"barcode_number": barcode_number}, {'_id': 0})
+        db = get_db()
+        cursor = db.execute("SELECT * FROM products WHERE barcode_number=?", (barcode_number,))
+        row = cursor.fetchone()
+        product = dict(row) if row else None
 
         if not product and not encoded_image:
             return error_response("Product not found and no image provided", 400)
@@ -136,19 +202,35 @@ def get_health_suggestion():
                 "Do not include any punctuation marks other than full stop and comma."
             )
 
-        result = run_ollama(prompt, expect_json=False)
-        return jsonify({"advice": result}), 200
+        def event_stream():
+            try:
+                for chunk in ollama.chat(
+                    model=MODEL_NAME,
+                    messages=[{"role": "user", "content": prompt}],
+                    stream=True
+                ):
+                    if "message" in chunk and "content" in chunk["message"]:
+                        text = chunk["message"]["content"]
+                        yield f"data: {text}\n\n"
+                yield "event: end\ndata: [DONE]\n\n"
+            except Exception as e:
+                yield f"event: error\ndata: {str(e)}\n\n"
+
+        return Response(stream_with_context(event_stream()), mimetype="text/event-stream")
 
     except BadRequest:
         return error_response("Invalid request format", 400)
     except Exception as e:
         return error_response(f"Unexpected error: {str(e)}", 500)
 
-
 @app.route("/extract_product_details", methods=["POST"])
 def extract_product_details():
     """
-    Extract product details from two uploaded images and return structured JSON.
+    Extract product details from two images.
+    Args:
+        None
+    Returns:
+        A JSON response with the extracted product details.
     """
     try:
         if "image1" not in request.files or "image2" not in request.files:
@@ -176,7 +258,7 @@ def extract_product_details():
     except Exception as e:
         return error_response(f"Unexpected error: {str(e)}", 500)
 
-
-
 if __name__ == '__main__':
+    with app.app_context():
+        init_db()
     app.run(host='0.0.0.0', debug=True)
