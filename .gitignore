@@ -1,3 +1,12 @@
-server/test.py
-server/test
-server/.env
+backend/.env
+backend/__pycache__/
+backend/.pytest_cache/
+backend/dump
+backend/tests/__pycache__/
+*__pycache__/
+backend/_dump/
+backend/tests/__pycache__/
+backend/app/__pycache__/
+backend/routes/__pycache__/
+backend/services/__pycache__/
+/.pytest_cache/

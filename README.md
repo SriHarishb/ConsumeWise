@@ -35,34 +35,26 @@ Before you begin, ensure you have the following installed:
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/Mohammed-Saajid/ConsumeWise.git
-cd ConsumeWise
+git clone https://github.com/Sriharishb/Nutriscope.git
+cd Nutriscope
 ```
 
 2. Install dependencies:
 
-```bash
+```sh
 flutter pub get
 ```
 
 
 3. Set up MongoDB:
 
-- Ensure MongoDB is running on your local machine or server. Modify the MongoDB connection URI in your backend to match your setup.
-
-- Create Database named Consumewise
-
-- Create Collection named products
-
 4. Run the server.py
 
 ```bash 
+cd backend
+pip install -r requirements.txt
 python server.py
 ```
-
-5. Get the URL and update it in AdminLogin.dart and Login.dart Respectively
-
-6. Also paste your Gemini API keys in AdminLogin.dart and Login.dart, and server.py Respectively
 
 
 7. Build APK (optional): To generate APKs for specific ABIs:

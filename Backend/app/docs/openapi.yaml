@@ -1,0 +1,164 @@
+openapi: 3.0.3
+info:
+  title: NutriChoice
+  version: 1.0.0
+  description: >
+    API for extracting product details from images, managing products, 
+    and generating health suggestions using Ollama.
+
+servers:
+  - url: http://localhost:5000
+
+paths:
+  /extract_product_details:
+    post:
+      summary: Extract product details from two images
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - image1
+                - image2
+              properties:
+                image1:
+                  type: string
+                  format: binary
+                  description: First product image
+                image2:
+                  type: string
+                  format: binary
+                  description: Second product image
+      responses:
+        "200":
+          description: Product details successfully extracted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "400":
+          description: Missing required images
+        "500":
+          description: Unexpected error
+
+  /gethealthsuggestion:
+    post:
+      summary: Get health suggestions for a product
+      description: >
+        Accepts either JSON with `barcode_number` and `diseases` OR
+        multipart form-data with an image file and optional diseases.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - barcode_number
+              properties:
+                barcode_number:
+                  type: string
+                  example: "12345"
+                diseases:
+                  type: array
+                  items:
+                    type: string
+                  example: ["diabetes", "hypertension"]
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: Product image file
+                diseases:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Streamed health advice (SSE)
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                example: |
+                  data: Sample advice...
+                  event: end
+                  data: [DONE]
+        "400":
+          description: Invalid request
+        "404":
+          description: Product not found
+        "500":
+          description: Unexpected error
+
+  /products:
+    get:
+      summary: Get all products
+      responses:
+        "200":
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+    post:
+      summary: Add a new product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Product"
+      responses:
+        "201":
+          description: Product created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Product added successfully!
+        "400":
+          description: Invalid product data or duplicate barcode
+
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        barcode_number:
+          type: string
+          example: "12345"
+        item_name:
+          type: string
+          example: "Whole Wheat Bread"
+        brand:
+          type: string
+          example: "HealthyBakery"
+        weight:
+          type: string
+          example: "500g"
+        ingredients:
+          type: array
+          items:
+            type: string
+          example: ["wheat flour", "water", "salt"]
+        nutritional_info:
+          type: object
+          additionalProperties: true
+          example:
+            calories: "250"
+            protein: "10g"
+        product_description:
+          type: string
+          example: "Soft whole wheat bread with no added sugar"
