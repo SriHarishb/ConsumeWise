@@ -15,7 +15,7 @@ load_dotenv()
 
 app = Flask(__name__)
 
-MONGO_URI = os.getenv("MONGO_URI")
+MONGO_URI = os.getenv("MONGODB_URI")
 DB_NAME = os.getenv("DB_NAME")
 MODEL_NAME = os.getenv("OLLAMA_MODEL")
 # Path to your OpenAPI YAML file

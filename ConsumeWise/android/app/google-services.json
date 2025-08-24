@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "582209082221",
+    "project_id": "nutriscope-f2b10",
+    "storage_bucket": "nutriscope-f2b10.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:582209082221:android:0afcc5c3a17aef04da0064",
+        "android_client_info": {
+          "package_name": "com.example.consume_wise"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "582209082221-qodtp5u33aagsft78eg62dj8thnjtqh3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.consume_wise",
+            "certificate_hash": "45c2a79d0990d05288eed1ce75a21e3374796caa"
+          }
+        },
+        {
+          "client_id": "582209082221-nu8ql3lhtviiant6kpe7poqi1ekertk3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAG8foc4PYezMkoetKT6DOS-oSHzZBojRI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "582209082221-nu8ql3lhtviiant6kpe7poqi1ekertk3.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "582209082221-r7d0rnblgopd6a43ra6a1n5svchbf8b2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.consumeWise"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

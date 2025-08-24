@@ -1,0 +1,2 @@
+C:/Users/admin/ConsumeWise/ConsumeWise/android/app/.cxx/Debug/1s6y4n44/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/admin/ConsumeWise/ConsumeWise/android/app/.cxx/Debug/1s6y4n44/x86_64/CMakeFiles/rebuild_cache.dir

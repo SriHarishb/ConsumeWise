@@ -1,4 +1,6 @@
-flask
-flask-cors
+﻿Flask
 pymongo
 ollama
+python-dotenv
+flask-swagger-ui
+pyyaml
